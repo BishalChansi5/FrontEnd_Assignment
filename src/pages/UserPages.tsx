@@ -5,19 +5,29 @@ import { useUserUIStore } from "../store/userStore";
 import { useCreateUser } from "../users/hook/useCreateUser";
 import { useUpdateuser } from "../users/hook/useUpdateUser";
 import { useGetAllUser, useGetUser } from "../users/hook/useGetUser";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 const UserPages = () => {
   const [disableButton, setDisableButton] = useState(false);
   const [searchUser, setSearchUser] = useState("");
-  const [filteredUser, setFilteredUser] = useState<null | User[]>(null);
   const { data, isLoading, error } = useGetUser();
   const { data: allUserData } = useGetAllUser();
   const { selectedUser, selectUser, toggleForm, pageNumber, setPageNumber } =
     useUserUIStore();
   const createUser = useCreateUser();
   const updateUser = useUpdateuser();
-  console.log(allUserData);
+  const displayedUsers = useMemo(() => {
+    const query = searchUser.trim().toLowerCase();
+
+    if (!query) {
+      return data ?? [];
+    }
+    return (allUserData ?? []).filter(
+      (user) =>
+        user.firstName.toLowerCase().includes(query) ||
+        user.lastName.toLowerCase().includes(query)
+    );
+  }, [searchUser, data, allUserData]);
   if (isLoading)
     return (
       <div className="flex justify-center items-center h-screen text-gray-500 text-lg">
@@ -38,7 +48,6 @@ const UserPages = () => {
         { id: selectedUser.id, data: values },
         {
           onSuccess: () => {
-            // if(filteredUser)
             resetForm();
             selectUser(null);
             toggleForm(false);
@@ -55,18 +64,7 @@ const UserPages = () => {
       });
     }
   };
-  const handleSearch = () => {
-    const query = searchUser.trim().toLowerCase();
-    if (!query) return;
 
-    const filteredUsers = allUserData?.filter(
-      (user) =>
-        user.firstName.toLowerCase().includes(query) ||
-        user.lastName.toLowerCase().includes(query)
-    );
-    setFilteredUser(filteredUsers ?? []);
-    setSearchUser("");
-  };
   return (
     <div className="container mx-auto p-4 space-y-8">
       <div className="bg-white p-6 rounded-lg shadow-md">
@@ -96,18 +94,12 @@ const UserPages = () => {
             placeholder="search user..."
             className="border rounded py-1 px-3"
           />
-          <button
-            className="ml-2 bg-sky-400 text-white py-1 px-3 rounded cursor-pointer"
-            onClick={handleSearch}
-          >
-            search
-          </button>
         </div>
         <h2 className="text-2xl font-semibold mb-4">User List</h2>
 
-        <UserList users={filteredUser ? filteredUser : data ?? []} />
+        <UserList users={displayedUsers} />
       </div>
-      {!filteredUser && (
+      {!searchUser.trim() && (
         <div className="flex gap-4 items-center justify-center">
           <button
             disabled={pageNumber === 0}

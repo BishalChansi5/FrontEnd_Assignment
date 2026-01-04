@@ -21,7 +21,6 @@ export const UserForm = ({ initialValues, onSubmit, isLoading }: Props) => {
       enableReinitialize
     >
       {({ errors, touched }) => {
-        console.log(errors);
         return (
           <Form className="space-y-4 ">
             <div className="flex flex-col border w-1/2 mx-auto py-4 px-6 rounded bg-gray-950">
