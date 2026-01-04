@@ -17,6 +17,9 @@ export const useDeleteUser = () => {
           return data.filter((user) => user.id !== id);
         }
       );
+      queryClient.setQueryData(QueryKeys.listUser, (data: User[]) => {
+        return data.filter((user) => user.id !== id);
+      });
       // queryClient.invalidateQueries({queryKey:['users']})
     },
     onError: () => {
