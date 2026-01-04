@@ -1,6 +1,6 @@
 import UserList from "../users/components/UserList";
 import { UserForm } from "../users/components/UserForm";
-import type { User, UserFormValues } from "../users/type/user";
+import type { UserFormValues } from "../users/type/user";
 import { useUserUIStore } from "../store/userStore";
 import { useCreateUser } from "../users/hook/useCreateUser";
 import { useUpdateuser } from "../users/hook/useUpdateUser";

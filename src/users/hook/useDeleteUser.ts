@@ -10,7 +10,7 @@ export const useDeleteUser = () => {
   const { pageNumber } = useUserUIStore();
   return useMutation({
     mutationFn: (id: string) => deleteUser(id),
-    onSuccess: (res, id) => {
+    onSuccess: (_, id) => {
       queryClient.setQueryData(
         [...QueryKeys.listUser, String(pageNumber)],
         (data: User[]) => {

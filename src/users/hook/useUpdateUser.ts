@@ -11,7 +11,7 @@ export const useUpdateuser = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UserFormValues }) =>
       updateUser({ id, data }),
-    onSuccess: (res: User, { id, data }) => {
+    onSuccess: (_, { id, data }) => {
       // console.log(res);
       queryClient.setQueryData(
         [...QueryKeys.listUser, String(pageNumber)],
