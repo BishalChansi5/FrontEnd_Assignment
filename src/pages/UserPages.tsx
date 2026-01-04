@@ -1,19 +1,23 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { viewUsers } from "../users/features/feature";
 import UserList from "../users/components/UserList";
 import { UserForm } from "../users/components/UserForm";
-import type { UserFormValues } from "../users/type/user";
+import type { User, UserFormValues } from "../users/type/user";
 import { useUserUIStore } from "../store/userStore";
-import { createUser } from "../users/services/api";
 import { useCreateUser } from "../users/hook/useCreateUser";
 import { useUpdateuser } from "../users/hook/useUpdateUser";
+import { useGetAllUser, useGetUser } from "../users/hook/useGetUser";
+import { useState } from "react";
 
 const UserPages = () => {
-  const { data, isLoading, error } = useQuery(viewUsers());
-  const { selectedUser, selectUser, toggleForm } = useUserUIStore();
+  const [disableButton, setDisableButton] = useState(false);
+  const [searchUser, setSearchUser] = useState("");
+  const [filteredUser, setFilteredUser] = useState<null | User[]>(null);
+  const { data, isLoading, error } = useGetUser();
+  const { data: allUserData } = useGetAllUser();
+  const { selectedUser, selectUser, toggleForm, pageNumber, setPageNumber } =
+    useUserUIStore();
   const createUser = useCreateUser();
   const updateUser = useUpdateuser();
-
+  console.log(allUserData);
   if (isLoading)
     return (
       <div className="flex justify-center items-center h-screen text-gray-500 text-lg">
@@ -28,27 +32,41 @@ const UserPages = () => {
       </div>
     );
   const handleSubmit = (values: UserFormValues, resetForm: () => void) => {
+    setDisableButton(true);
     if (selectedUser) {
       updateUser.mutate(
         { id: selectedUser.id, data: values },
         {
           onSuccess: () => {
+            // if(filteredUser)
             resetForm();
             selectUser(null);
             toggleForm(false);
+            setDisableButton(false);
           },
         }
-        
       );
     } else {
       createUser.mutate(values, {
         onSuccess: () => {
           resetForm();
+          setDisableButton(false);
         },
       });
     }
   };
+  const handleSearch = () => {
+    const query = searchUser.trim().toLowerCase();
+    if (!query) return;
 
+    const filteredUsers = allUserData?.filter(
+      (user) =>
+        user.firstName.toLowerCase().includes(query) ||
+        user.lastName.toLowerCase().includes(query)
+    );
+    setFilteredUser(filteredUsers ?? []);
+    setSearchUser("");
+  };
   return (
     <div className="container mx-auto p-4 space-y-8">
       <div className="bg-white p-6 rounded-lg shadow-md">
@@ -65,13 +83,54 @@ const UserPages = () => {
             }
           }
           onSubmit={handleSubmit}
+          isLoading={disableButton}
         />
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="text-center mb-3">
+          <input
+            type="text"
+            value={searchUser}
+            onChange={(e) => setSearchUser(e.target.value)}
+            placeholder="search user..."
+            className="border rounded py-1 px-3"
+          />
+          <button
+            className="ml-2 bg-sky-400 text-white py-1 px-3 rounded cursor-pointer"
+            onClick={handleSearch}
+          >
+            search
+          </button>
+        </div>
         <h2 className="text-2xl font-semibold mb-4">User List</h2>
-        <UserList users={data ?? []} />
+
+        <UserList users={filteredUser ? filteredUser : data ?? []} />
       </div>
+      {!filteredUser && (
+        <div className="flex gap-4 items-center justify-center">
+          <button
+            disabled={pageNumber === 0}
+            className={`p-2 rounded text-white ${
+              pageNumber === 0
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-green-400"
+            }`}
+            onClick={() => setPageNumber(pageNumber - 1)}
+          >
+            Prev
+          </button>
+
+          <p>{pageNumber + 1}</p>
+
+          <button
+            className="bg-green-400 p-2 rounded text-white"
+            onClick={() => setPageNumber(pageNumber + 1)}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

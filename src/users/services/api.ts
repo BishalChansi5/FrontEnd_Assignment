@@ -12,9 +12,20 @@ interface UsersResponse {
 const api = axios.create({
   baseURL: "https://dummyjson.com",
 });
-
-export const fetchUser = async (): Promise<User[]> => {
+export const fetchAllUsers = async (): Promise<User[]> => {
   const res = await api.get<UsersResponse>("/users");
+  return res.data.users.map(mapUserFromApi);
+};
+
+export const fetchUser = async ({
+  queryKey,
+}: {
+  queryKey: string[];
+}): Promise<User[]> => {
+  const [, page] = queryKey;
+  const res = await api.get<UsersResponse>(
+    `/users?skip=${Number(page) * 10}&limit=10`
+  );
   return res.data.users.map(mapUserFromApi);
 };
 export const createUser = async (data: UserFormValues) => {
