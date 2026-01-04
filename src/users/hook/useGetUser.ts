@@ -11,6 +11,3 @@ export const useGetAllUser = () => {
   return { data };
 };
 
-// export const useGetSearchUser = () => {
-//       const { data } = useQuery(viewAllUsers());
-// }
